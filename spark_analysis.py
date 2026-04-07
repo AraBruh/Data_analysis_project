@@ -7,13 +7,13 @@ df = spark.read.csv("patients.csv", header=True, inferSchema=True)
 
 df.show(5)
 
-# 🔹 Count patients
+#Count patients
 print("Total:", df.count())
 
-# 🔹 Average age
+#Average age
 df.selectExpr("avg(age)").show()
 
-# 🔹 Group by sex
+#Group by sex
 df.groupBy("sex").count().show()
 
 import matplotlib.pyplot as plt
@@ -23,7 +23,7 @@ pdf = df.groupBy("sex").count().toPandas()
 plt.figure(figsize=(6,4))
 bars = plt.bar(pdf["sex"], pdf["count"])
 
-# Add numbers on top of bars
+#Add numbers on top of bars
 for bar in bars:
     yval = bar.get_height()
     plt.text(bar.get_x() + bar.get_width()/2, yval, int(yval), 
@@ -40,7 +40,7 @@ from pyspark.sql.functions import sum as spark_sum
 
 disease_cols = [col for col in df.columns if col.startswith("dx_")]
 
-# Sum each disease column
+#Sum each disease column
 disease_counts = df.select([
     spark_sum(col).alias(col) for col in disease_cols
 ])
@@ -52,7 +52,7 @@ pdf.columns = ["disease", "count"]
 pdf = pdf.sort_values(by="count", ascending=False).head(10)
 
 
-# Clean disease names
+#Clean disease names
 pdf["disease"] = pdf["disease"].str.replace("dx_", "") \
                                .str.replace("_", " ") \
                                .str.title()
@@ -62,7 +62,7 @@ bars = plt.bar(pdf["disease"], pdf["count"])
 
 plt.xticks(rotation=45, ha="right")
 
-# Add values
+#Add values
 for bar in bars:
     yval = bar.get_height()
     plt.text(bar.get_x() + bar.get_width()/2, yval, int(yval),
@@ -79,7 +79,7 @@ plt.show()
 
 from pyspark.sql.functions import avg, when
 
-# Create age groups
+#Create age groups
 df_grouped = df.withColumn(
     "age_group",
     when(df.age < 30, "Under 30")
@@ -100,7 +100,7 @@ plt.figure(figsize=(6,4))
 
 bars = plt.bar(pdf["age_group"], pdf["hypertension_rate"])
 
-# Add percentage labels
+#Add percentage labels
 for bar in bars:
     yval = bar.get_height()
     plt.text(bar.get_x() + bar.get_width()/2, yval, 
@@ -132,24 +132,24 @@ import numpy as np
 import seaborn as sns
 import matplotlib.pyplot as plt
 
-# Create empty matrix
+#Create empty matrix
 matrix = pd.DataFrame(np.zeros((len(disease_cols), len(disease_cols))),
                       index=disease_cols, columns=disease_cols)
 
-# Fill upper triangle with correlations
+#Fill upper triangle with correlations
 for (d1, d2), val in corr_dict.items():
     matrix.loc[d1, d2] = val
     matrix.loc[d2, d1] = val  # mirror
 
-# Fill diagonal safely
+#Fill diagonal safely
 for i in range(len(matrix)):
     matrix.iloc[i, i] = 1
 
-# Clean labels
+#Clean labels
 matrix.index = [x.replace("dx_", "").replace("_", " ").title() for x in matrix.index]
 matrix.columns = matrix.index
 
-# Plot
+#Plot
 plt.figure(figsize=(10,8))
 sns.heatmap(matrix, annot=True, fmt=".2f", cmap="Reds", cbar_kws={'label': 'Correlation'})
 plt.title("Co-occurring Diseases Heatmap")
